@@ -5,6 +5,7 @@ import (
 	"log"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/anaskhan96/soup"
 	"github.com/chromedp/chromedp"
@@ -13,23 +14,24 @@ import (
 var Article_url_root string = "https://www.nature.com/"
 
 type Webcrawler struct {
-	Root  string
-	Seeds []string
+	Todo_urls []string
+	fetched   []string
 }
 
 // Constructor
 func NewWebcrawler(root string) *Webcrawler {
 	wc := new(Webcrawler)
-	wc.Root = root
+	wc.Todo_urls = append(wc.Todo_urls, root)
 	return wc
 }
 
-func (w *Webcrawler) Populate_seeds() {
+func (w *Webcrawler) Populate_seeds(url string, wg *sync.WaitGroup) {
+	defer wg.Done()
 	// This function parses the html of the first link and
 	// returns a list of following urls to the seeds param
 	var seeds []string
 	//Step 1: Get the html
-	resp, err := soup.Get(w.Root)
+	resp, err := soup.Get(url)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,7 +54,11 @@ func (w *Webcrawler) Populate_seeds() {
 			}
 		}
 
-		w.Seeds = seeds
+		w.Todo_urls = append(w.Todo_urls, seeds...)
+	}
+	for _, url := range w.Todo_urls {
+		go w.Populate_seeds(url, wg)
+		wg.Add(1)
 	}
 
 }
