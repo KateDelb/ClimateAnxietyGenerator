@@ -25,11 +25,12 @@
             color: white;
         }
     </style>
+    <script src="https://unpkg.com/htmx.org"></script>
 </head>
 <body>
     <div class="container">
         <h1>Don't feel like you have enough climate anxiety?</h1>
-        <button onclick="window.location.href='{{.}}'">Click for climate anxiety</button>
+        <button hx-get="/get-random-url" hx-trigger="click" hx-swap="outerHTML" id="anxietyButton">Click for climate anxiety</button>
     </div>
 </body>
 </html>

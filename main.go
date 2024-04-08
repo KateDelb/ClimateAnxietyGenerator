@@ -24,14 +24,22 @@ func main() {
 		wg.Add(1)
 	}
 	wg.Wait() // Wait for all workers to finish
-	fmt.Println("All workers finished execution, len of todo list", len(crawler.Todo_urls))
+	fmt.Println("All workers finished execution, len of todo list", len(crawler.Todo_urls), "len of Done urls", len(crawler.Done_urls))
 	elapsed := time.Since(start)
 	log.Printf("Fetching the urls took %s", elapsed)
 
+	rand.Seed(time.Now().Unix()) // initialize global pseudo random generator
 	// 	//Dyncamically insert the random url so the button redirects to it.
+
+	http.HandleFunc("/get-random-url", func(w http.ResponseWriter, r *http.Request) {
+		// rand.Seed(time.Now().UnixNano())
+		randomURL := crawler.Todo_urls[rand.Intn(len(crawler.Todo_urls))]
+		newButtonHTML := fmt.Sprintf(`<button hx-get="/get-random-url" hx-trigger="click" hx-swap="outerHTML" onclick="window.location.href='%s';">Click for climate anxiety</button>`, randomURL)
+		fmt.Fprint(w, newButtonHTML)
+	})
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Define the data to be passed to the template
-		rand.Seed(time.Now().Unix()) // initialize global pseudo random generator
 		random_url := crawler.Todo_urls[rand.Intn(len(crawler.Todo_urls))]
 		Data := random_url
 		fmt.Printf("URL: %s\n", Data)
